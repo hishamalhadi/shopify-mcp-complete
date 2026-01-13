@@ -8,34 +8,43 @@ import {
 } from "../schemas/analytics.js";
 import { SHOPIFYQL_QUERY, GET_CUSTOMERS } from "../graphql/index.js";
 
-// Helper to get date range for period
-function getDateRange(period: string): { since: string; until?: string } {
-  const now = new Date();
-  const today = now.toISOString().split("T")[0];
+// Helper to check for parse errors (handles string, array, or null)
+function hasParseErrors(parseErrors: unknown): string | null {
+  if (!parseErrors) return null;
+  if (typeof parseErrors === "string") {
+    const trimmed = parseErrors.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (Array.isArray(parseErrors) && parseErrors.length > 0) {
+    return parseErrors.map((e) => (typeof e === "object" && e?.message) || String(e)).join(", ");
+  }
+  return null;
+}
 
+// Helper to get date clause for period
+// Returns either "DURING named_range" or "SINCE x UNTIL y" format
+function getDateClause(period: string): string {
   switch (period) {
     case "today":
-      return { since: `${today}` };
+      return "DURING today";
     case "yesterday":
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      return { since: yesterday.toISOString().split("T")[0], until: today };
+      return "DURING yesterday";
     case "last_7_days":
-      return { since: "startOfDay(-6d)" };
+      return "SINCE -7d UNTIL today";
     case "last_30_days":
-      return { since: "startOfDay(-29d)" };
+      return "SINCE -30d UNTIL today";
     case "last_90_days":
-      return { since: "startOfDay(-89d)" };
+      return "SINCE -90d UNTIL today";
     case "this_month":
-      return { since: "startOfMonth(0m)" };
+      return "DURING this_month";
     case "last_month":
-      return { since: "startOfMonth(-1m)", until: "endOfMonth(-1m)" };
+      return "DURING last_month";
     case "this_year":
-      return { since: "startOfYear(0y)" };
+      return "DURING this_year";
     case "last_year":
-      return { since: "startOfYear(-1y)", until: "endOfYear(-1y)" };
+      return "DURING last_year";
     default:
-      return { since: "startOfDay(-29d)" };
+      return "SINCE -30d UNTIL today";
   }
 }
 
@@ -53,22 +62,24 @@ export function createAnalyticsTools(client: GraphQLClient) {
             tableData: {
               columns: Array<{ name: string; dataType: string; displayName: string }>;
               rows: unknown[];
-              rowCount: number;
-            };
-            parseErrors: Array<{ code: string; message: string }>;
+            } | null;
+            parseErrors: string | null;
           };
         }>(SHOPIFYQL_QUERY, { query: params.query });
 
-        if (data.shopifyqlQuery.parseErrors?.length > 0) {
-          throw new Error(
-            `ShopifyQL parse error: ${data.shopifyqlQuery.parseErrors.map((e) => e.message).join(", ")}`
-          );
+        const parseError = hasParseErrors(data.shopifyqlQuery.parseErrors);
+        if (parseError) {
+          throw new Error(`ShopifyQL parse error: ${parseError}`);
         }
 
+        const tableData = data.shopifyqlQuery.tableData;
+        if (!tableData) {
+          return { columns: [], rows: [], rowCount: 0 };
+        }
         return {
-          columns: data.shopifyqlQuery.tableData.columns,
-          rows: data.shopifyqlQuery.tableData.rows,
-          rowCount: data.shopifyqlQuery.tableData.rowCount,
+          columns: tableData.columns || [],
+          rows: tableData.rows || [],
+          rowCount: tableData.rows?.length || 0,
         };
       },
     },
@@ -79,7 +90,7 @@ export function createAnalyticsTools(client: GraphQLClient) {
       schema: SalesReportInputSchema,
       handler: async (input: unknown) => {
         const params = SalesReportInputSchema.parse(input);
-        const dateRange = getDateRange(params.period);
+        const dateClause = getDateClause(params.period);
 
         let groupByClause = "";
         switch (params.groupBy) {
@@ -111,31 +122,33 @@ export function createAnalyticsTools(client: GraphQLClient) {
             groupByClause = "GROUP BY day";
         }
 
-        const query = `FROM sales SHOW total_sales, net_sales, orders_count ${groupByClause} SINCE ${dateRange.since}${dateRange.until ? ` UNTIL ${dateRange.until}` : ""} ORDER BY total_sales DESC`;
+        const query = `FROM sales SHOW total_sales, net_sales, orders ${groupByClause} ${dateClause} ORDER BY total_sales DESC`;
 
         const data = await client.request<{
           shopifyqlQuery: {
             tableData: {
               columns: Array<{ name: string; dataType: string; displayName: string }>;
               rows: unknown[];
-              rowCount: number;
-            };
-            parseErrors: Array<{ code: string; message: string }>;
+            } | null;
+            parseErrors: string | null;
           };
         }>(SHOPIFYQL_QUERY, { query });
 
-        if (data.shopifyqlQuery.parseErrors?.length > 0) {
-          throw new Error(
-            `ShopifyQL error: ${data.shopifyqlQuery.parseErrors.map((e) => e.message).join(", ")}`
-          );
+        const parseError = hasParseErrors(data.shopifyqlQuery.parseErrors);
+        if (parseError) {
+          throw new Error(`ShopifyQL error: ${parseError}`);
         }
 
+        const tableData = data.shopifyqlQuery.tableData;
+        if (!tableData) {
+          return { period: params.period, groupBy: params.groupBy || "day", columns: [], rows: [], rowCount: 0 };
+        }
         return {
           period: params.period,
           groupBy: params.groupBy || "day",
-          columns: data.shopifyqlQuery.tableData.columns,
-          rows: data.shopifyqlQuery.tableData.rows,
-          rowCount: data.shopifyqlQuery.tableData.rowCount,
+          columns: tableData.columns || [],
+          rows: tableData.rows || [],
+          rowCount: tableData.rows?.length || 0,
         };
       },
     },
@@ -207,34 +220,36 @@ export function createAnalyticsTools(client: GraphQLClient) {
       schema: ProductPerformanceInputSchema,
       handler: async (input: unknown) => {
         const params = ProductPerformanceInputSchema.parse(input);
-        const dateRange = getDateRange(params.period);
+        const dateClause = getDateClause(params.period);
 
         const sortColumn = params.sortBy === "quantity_sold" ? "quantity" : "total_sales";
-        const query = `FROM sales SHOW product_title, variant_title, quantity, total_sales GROUP BY product_title, variant_title SINCE ${dateRange.since}${dateRange.until ? ` UNTIL ${dateRange.until}` : ""} ORDER BY ${sortColumn} DESC LIMIT ${params.limit}`;
+        const query = `FROM sales SHOW product_title, variant_title, quantity, total_sales GROUP BY product_title, variant_title ${dateClause} ORDER BY ${sortColumn} DESC LIMIT ${params.limit}`;
 
         const data = await client.request<{
           shopifyqlQuery: {
             tableData: {
               columns: Array<{ name: string; dataType: string; displayName: string }>;
               rows: unknown[];
-              rowCount: number;
-            };
-            parseErrors: Array<{ code: string; message: string }>;
+            } | null;
+            parseErrors: string | null;
           };
         }>(SHOPIFYQL_QUERY, { query });
 
-        if (data.shopifyqlQuery.parseErrors?.length > 0) {
-          throw new Error(
-            `ShopifyQL error: ${data.shopifyqlQuery.parseErrors.map((e) => e.message).join(", ")}`
-          );
+        const parseError = hasParseErrors(data.shopifyqlQuery.parseErrors);
+        if (parseError) {
+          throw new Error(`ShopifyQL error: ${parseError}`);
         }
 
+        const tableData = data.shopifyqlQuery.tableData;
+        if (!tableData) {
+          return { period: params.period, sortBy: params.sortBy, columns: [], products: [], totalProducts: 0 };
+        }
         return {
           period: params.period,
           sortBy: params.sortBy,
-          columns: data.shopifyqlQuery.tableData.columns,
-          products: data.shopifyqlQuery.tableData.rows,
-          totalProducts: data.shopifyqlQuery.tableData.rowCount,
+          columns: tableData.columns || [],
+          products: tableData.rows || [],
+          totalProducts: tableData.rows?.length || 0,
         };
       },
     },

@@ -53,13 +53,19 @@ export function createInventoryTools(client: GraphQLClient) {
           const threshold = params.threshold ?? 10;
           items = items.filter((item: unknown) => {
             const inventoryItem = item as {
-              inventoryLevels?: { edges?: Array<{ node?: { available?: number } }> };
+              inventoryLevels?: {
+                edges?: Array<{
+                  node?: {
+                    quantities?: Array<{ name: string; quantity: number }>
+                  }
+                }>
+              };
             };
             const levels = inventoryItem.inventoryLevels?.edges || [];
-            const totalAvailable = levels.reduce(
-              (sum, edge) => sum + (edge.node?.available || 0),
-              0
-            );
+            const totalAvailable = levels.reduce((sum, edge) => {
+              const availableQty = edge.node?.quantities?.find(q => q.name === "available");
+              return sum + (availableQty?.quantity || 0);
+            }, 0);
             return totalAvailable <= threshold;
           });
         }

@@ -106,17 +106,37 @@ Add to your Claude Desktop config:
 
 ## Required Shopify Scopes
 
-Configure your app in the Shopify Partners Dashboard with these scopes:
+Configure your app in the Shopify Partners Dashboard with these scopes.
 
-- `read_products`, `write_products`
-- `read_orders`, `write_orders`
-- `read_customers`, `write_customers`
-- `read_inventory`, `write_inventory`
-- `read_analytics`
-- `read_discounts`, `write_discounts`
-- `read_price_rules`, `write_price_rules`
+### Quick Copy-Paste (All Scopes)
 
-**Note:** Not all scopes are required. Enable only the scopes you need for the tools you plan to use.
+```
+read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_inventory,write_inventory,read_reports,read_discounts,write_discounts,read_price_rules,write_price_rules,read_fulfillments,write_fulfillments,read_draft_orders,write_draft_orders,read_locations
+```
+
+### Scopes by Feature
+
+| Feature | Scopes Required |
+|---------|-----------------|
+| **Products** | `read_products`, `write_products` |
+| **Orders** | `read_orders`, `write_orders` |
+| **Customers** | `read_customers`, `write_customers` |
+| **Inventory** | `read_inventory`, `write_inventory` |
+| **Analytics/ShopifyQL** | `read_reports` |
+| **Discounts** | `read_discounts`, `write_discounts`, `read_price_rules`, `write_price_rules` |
+| **Fulfillment** | `read_fulfillments`, `write_fulfillments` |
+| **Draft Orders** | `read_draft_orders`, `write_draft_orders` |
+| **Locations** | `read_locations` |
+
+### Minimum Scopes (Read-Only)
+
+If you only need read access:
+
+```
+read_products,read_orders,read_customers,read_inventory,read_reports,read_discounts,read_price_rules,read_fulfillments,read_draft_orders,read_locations
+```
+
+**Important:** The `read_reports` scope is required for ShopifyQL-based analytics tools (`sales-report`, `shopifyql-query`, `product-performance`). Without it, these tools will return access denied errors.
 
 ## Tool Reference
 

@@ -54,21 +54,21 @@ export const ProductPerformanceInputSchema = z.object({
 export const ANALYTICS_QUERIES = {
   // Sales queries
   monthlySales:
-    "FROM sales SHOW total_sales, net_sales, orders_count GROUP BY month SINCE startOfYear(0y) ORDER BY month",
+    "FROM sales SHOW total_sales, net_sales, orders GROUP BY month DURING this_year ORDER BY month",
   dailySales:
-    "FROM sales SHOW total_sales, orders_count GROUP BY day DURING last_7_days ORDER BY day",
+    "FROM sales SHOW total_sales, orders GROUP BY day SINCE -7d UNTIL today ORDER BY day",
   salesByProduct:
     "FROM sales SHOW product_title, total_sales, quantity GROUP BY product_title ORDER BY total_sales DESC LIMIT 20",
   salesByVendor:
     "FROM sales SHOW vendor, total_sales, net_sales GROUP BY vendor ORDER BY total_sales DESC",
   salesByChannel:
-    "FROM sales SHOW channel, total_sales, orders_count GROUP BY channel ORDER BY total_sales DESC",
+    "FROM sales SHOW channel, total_sales, orders GROUP BY channel ORDER BY total_sales DESC",
 
   // Customer queries
   topCustomers:
-    "FROM sales SHOW customer_email, total_sales, orders_count GROUP BY customer_email ORDER BY total_sales DESC LIMIT 20",
+    "FROM sales SHOW customer_email, total_sales, orders GROUP BY customer_email ORDER BY total_sales DESC LIMIT 20",
   newVsReturning:
-    "FROM sales SHOW customer_type, total_sales, orders_count GROUP BY customer_type",
+    "FROM sales SHOW customer_type, total_sales, orders GROUP BY customer_type",
 
   // Product queries
   topProducts:
@@ -78,9 +78,9 @@ export const ANALYTICS_QUERIES = {
 
   // Time-based
   hourlyDistribution:
-    "FROM sales SHOW total_sales, orders_count GROUP BY hour DURING last_30_days",
+    "FROM sales SHOW total_sales, orders GROUP BY hour SINCE -30d UNTIL today",
   weekdayDistribution:
-    "FROM sales SHOW total_sales, orders_count GROUP BY day_of_week DURING last_30_days",
+    "FROM sales SHOW total_sales, orders GROUP BY day_of_week SINCE -30d UNTIL today",
 } as const;
 
 export type ShopifyQLQueryInput = z.infer<typeof ShopifyQLQueryInputSchema>;

@@ -107,8 +107,6 @@ export const GET_PRODUCT_BY_ID = gql`
             sku
             barcode
             inventoryQuantity
-            weight
-            weightUnit
             inventoryItem {
               id
             }
@@ -531,7 +529,10 @@ export const GET_INVENTORY_LEVELS = gql`
             edges {
               node {
                 id
-                available
+                quantities(names: ["available", "on_hand", "committed", "incoming"]) {
+                  name
+                  quantity
+                }
                 location {
                   id
                   name
@@ -739,22 +740,8 @@ export const SHOPIFYQL_QUERY = gql`
           displayName
         }
         rows
-        rowCount
       }
-      parseErrors {
-        code
-        message
-        range {
-          start {
-            line
-            column
-          }
-          end {
-            line
-            column
-          }
-        }
-      }
+      parseErrors
     }
   }
 `;

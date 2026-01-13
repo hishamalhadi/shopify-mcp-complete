@@ -31,3 +31,6 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Work in progress / internal changelog
+WIP-CHANGELOG.md
