@@ -547,3 +547,33 @@ export const REMOVE_PRODUCTS_FROM_COLLECTION = gql`
     }
   }
 `;
+
+// ============ THEMES ============
+
+export const THEME_FILES_UPSERT = gql`
+  mutation ThemeFilesUpsert($themeId: ID!, $files: [OnlineStoreThemeFilesUpsertFileInput!]!) {
+    themeFilesUpsert(themeId: $themeId, files: $files) {
+      upsertedThemeFiles {
+        filename
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const THEME_FILES_DELETE = gql`
+  mutation ThemeFilesDelete($themeId: ID!, $files: [String!]!) {
+    themeFilesDelete(themeId: $themeId, files: $files) {
+      deletedThemeFiles {
+        filename
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;

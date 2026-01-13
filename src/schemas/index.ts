@@ -8,3 +8,4 @@ export * from "./analytics.js";
 export * from "./discounts.js";
 export * from "./collections.js";
 export * from "./shop.js";
+export * from "./themes.js";

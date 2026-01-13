@@ -1,13 +1,14 @@
 # shopify-mcp-complete
 
-A comprehensive Model Context Protocol (MCP) server for Shopify's GraphQL Admin API. Provides **40 tools** for managing products, orders, customers, inventory, analytics, discounts, collections, and more.
+A comprehensive Model Context Protocol (MCP) server for Shopify's GraphQL Admin API. Provides **44 tools** for managing products, orders, customers, inventory, analytics, discounts, collections, themes, and more.
 
 ## Features
 
-- **40 MCP Tools** covering all major Shopify operations
+- **44 MCP Tools** covering all major Shopify operations
 - **Full CRUD Support** for products, customers, orders, and more
 - **Inventory Management** - adjust, set, transfer, and track stock levels
 - **ShopifyQL Analytics** - run custom analytics queries for sales, customers, products
+- **Theme Access** - read and modify theme files (templates, sections, assets)
 - **TypeScript** with full type safety and Zod validation
 - **Latest Shopify API** - Uses GraphQL Admin API version 2026-01
 
@@ -22,6 +23,7 @@ A comprehensive Model Context Protocol (MCP) server for Shopify's GraphQL Admin 
 | **Analytics** | 4 | ShopifyQL queries, sales reports, product performance |
 | **Discounts** | 4 | Create, list, update, delete discount codes |
 | **Collections** | 3 | List, products, create/update |
+| **Themes** | 4 | List themes, read/write theme files |
 | **Shop** | 2 | Store info, locations |
 
 ## Installation
@@ -111,7 +113,7 @@ Configure your app in the Shopify Partners Dashboard with these scopes.
 ### Quick Copy-Paste (All Scopes)
 
 ```
-read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_inventory,write_inventory,read_reports,read_discounts,write_discounts,read_price_rules,write_price_rules,read_fulfillments,write_fulfillments,read_draft_orders,write_draft_orders,read_locations
+read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_inventory,write_inventory,read_reports,read_discounts,write_discounts,read_price_rules,write_price_rules,read_fulfillments,write_fulfillments,read_draft_orders,write_draft_orders,read_locations,read_themes,write_themes
 ```
 
 ### Scopes by Feature
@@ -127,16 +129,19 @@ read_products,write_products,read_orders,write_orders,read_customers,write_custo
 | **Fulfillment** | `read_fulfillments`, `write_fulfillments` |
 | **Draft Orders** | `read_draft_orders`, `write_draft_orders` |
 | **Locations** | `read_locations` |
+| **Themes** | `read_themes`, `write_themes` |
 
 ### Minimum Scopes (Read-Only)
 
 If you only need read access:
 
 ```
-read_products,read_orders,read_customers,read_inventory,read_reports,read_discounts,read_price_rules,read_fulfillments,read_draft_orders,read_locations
+read_products,read_orders,read_customers,read_inventory,read_reports,read_discounts,read_price_rules,read_fulfillments,read_draft_orders,read_locations,read_themes
 ```
 
-**Important:** The `read_reports` scope is required for ShopifyQL-based analytics tools (`sales-report`, `shopifyql-query`, `product-performance`). Without it, these tools will return access denied errors.
+**Important:**
+- The `read_reports` scope is required for ShopifyQL-based analytics tools (`sales-report`, `shopifyql-query`, `product-performance`). Without it, these tools will return access denied errors.
+- The `write_themes` scope requires an exemption from Shopify for production apps. [Request exemption here](https://shopify.dev/docs/apps/build/online-store/theme-app-extensions).
 
 ## Tool Reference
 
@@ -212,6 +217,15 @@ read_products,read_orders,read_customers,read_inventory,read_reports,read_discou
 | `get-collections` | List collections |
 | `get-collection-products` | Products in collection |
 | `manage-collection` | Create/update collection |
+
+### Themes
+
+| Tool | Description |
+|------|-------------|
+| `get-themes` | List all themes (published, drafts, dev) |
+| `get-theme-files` | Read theme files (templates, sections, assets) |
+| `update-theme-files` | Create or update theme files |
+| `delete-theme-files` | Delete theme files |
 
 ### Shop
 

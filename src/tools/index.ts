@@ -7,6 +7,7 @@ import { createAnalyticsTools } from "./analytics.js";
 import { createDiscountTools } from "./discounts.js";
 import { createCollectionTools } from "./collections.js";
 import { createShopTools } from "./shop.js";
+import { createThemeTools } from "./themes.js";
 
 export interface Tool {
   description: string;
@@ -34,12 +35,14 @@ export function createAllTools(client: GraphQLClient): ToolRegistry {
     ...createCollectionTools(client),
     // Shop (2 tools)
     ...createShopTools(client),
+    // Themes (4 tools)
+    ...createThemeTools(client),
   };
 }
 
 export function getToolCount(): number {
   // Return approximate count based on our implementation
-  return 40;
+  return 44;
 }
 
 export {
@@ -51,4 +54,5 @@ export {
   createDiscountTools,
   createCollectionTools,
   createShopTools,
+  createThemeTools,
 };

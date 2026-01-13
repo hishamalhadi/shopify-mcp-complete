@@ -745,3 +745,66 @@ export const SHOPIFYQL_QUERY = gql`
     }
   }
 `;
+
+// ============ THEMES ============
+
+export const GET_THEMES = gql`
+  query GetThemes($first: Int!, $roles: [ThemeRole!]) {
+    themes(first: $first, roles: $roles) {
+      nodes {
+        id
+        name
+        role
+        createdAt
+        updatedAt
+        processing
+        processingFailed
+      }
+    }
+  }
+`;
+
+export const GET_THEME = gql`
+  query GetTheme($id: ID!) {
+    theme(id: $id) {
+      id
+      name
+      role
+      createdAt
+      updatedAt
+      processing
+      processingFailed
+    }
+  }
+`;
+
+export const GET_THEME_FILES = gql`
+  query GetThemeFiles($id: ID!, $filenames: [String!], $first: Int!) {
+    theme(id: $id) {
+      id
+      name
+      role
+      files(filenames: $filenames, first: $first) {
+        nodes {
+          filename
+          size
+          body {
+            ... on OnlineStoreThemeFileBodyText {
+              content
+            }
+            ... on OnlineStoreThemeFileBodyBase64 {
+              contentBase64
+            }
+            ... on OnlineStoreThemeFileBodyUrl {
+              url
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`;
