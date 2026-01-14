@@ -97,7 +97,7 @@ export function createInventoryTools(client: GraphQLClient) {
           };
         }>(ADJUST_INVENTORY_QUANTITIES, {
           input: {
-            reason: params.reason.toUpperCase(),
+            reason: params.reason,
             name: "available",
             referenceDocumentUri: params.referenceDocumentUri,
             changes: [
@@ -147,7 +147,7 @@ export function createInventoryTools(client: GraphQLClient) {
           };
         }>(ADJUST_INVENTORY_QUANTITIES, {
           input: {
-            reason: params.reason.toUpperCase(),
+            reason: params.reason,
             name: "available",
             changes,
           },
@@ -186,7 +186,7 @@ export function createInventoryTools(client: GraphQLClient) {
           };
         }>(SET_INVENTORY_QUANTITIES, {
           input: {
-            reason: params.reason.toUpperCase(),
+            reason: params.reason,
             setQuantities: [
               {
                 inventoryItemId,
